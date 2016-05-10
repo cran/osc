@@ -1,0 +1,5 @@
+useDynLib(osc)
+
+export(cca, cca.single, assign.data, osc.buffer, coordinate.list)
+import(raster)
+importFrom("utils", "setTxtProgressBar", "txtProgressBar")
