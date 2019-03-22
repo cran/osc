@@ -188,10 +188,57 @@ dev.off()
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{pics/landcover.pdf}
-\caption{Clustering of land cover data. Left side the original data and on the right side the clutered result.}
+\caption{Clustering of land cover data. Left side the original data and on the right side the clustered result.}
 \label{fig:landcover}
 \end{figure}
 
+\subsection{Clustering point data}
+
+<<results=hide, echo=TRUE>>=
+library(maps)
+head(world.cities)
+str(world.cities)
+@
+
+<<echo=TRUE>>=
+city.cluster <- cca(data = world.cities[,c(5,4,1:3,6)], s = 0.5)
+
+@
+
+
+<<echo=TRUE>>=
+city.cluster.m <- cca(data = world.cities[,c(5,4,1:3,6)], s = 56*1e+03,
+                      res.x = 0.05, res.y = 0.05, unit = "m")
+
+@
+
+<<results=hide, echo=FALSE>>=
+pdf("pics/point_data.pdf", width=8, height=4)
+par(mfrow=c(1,2))
+plot(x = city.cluster[[1]]$long,
+     y = city.cluster[[1]]$lat,
+     col=city.cluster[[1]]$cluster_id,
+     main = "d = 0.5°",
+     pch=19, cex=.1, xlab="long", ylab="lat")
+plot(x = city.cluster.m[[1]]$long,
+     y = city.cluster.m[[1]]$lat,
+     col=city.cluster.m[[1]]$cluster_id,
+     main = "d = 56 km",
+     pch=19, cex=.1, xlab="long", ylab="lat")
+dev.off()
+@
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{pics/point_data.pdf}
+\caption{CBla bla bla}
+\label{fig:landcover}
+\end{figure}
+
+<<echo=TRUE>>=
+  coordinates(city.cluster[[1]]) <- ~long+lat
+  proj4string(city.cluster[[1]]) <- CRS("+init=epsg:4326")
+@
 
 \section{Comparison of the two Versions - matrix vs. list}
 \label{sec:compare}

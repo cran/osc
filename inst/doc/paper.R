@@ -126,7 +126,55 @@ dev.off()
 
 
 ###################################################
-### code chunk number 14: paper.rnw:205-234 (eval = FALSE)
+### code chunk number 14: paper.rnw:197-200
+###################################################
+library(maps)
+head(world.cities)
+str(world.cities)
+
+
+###################################################
+### code chunk number 15: paper.rnw:203-205
+###################################################
+city.cluster <- cca(data = world.cities[,c(5,4,1:3,6)], s = 0.5)
+
+
+
+###################################################
+### code chunk number 16: paper.rnw:209-212
+###################################################
+city.cluster.m <- cca(data = world.cities[,c(5,4,1:3,6)], s = 56*1e+03,
+                      res.x = 0.05, res.y = 0.05, unit = "m")
+
+
+
+###################################################
+### code chunk number 17: paper.rnw:215-228
+###################################################
+pdf("pics/point_data.pdf", width=8, height=4)
+par(mfrow=c(1,2))
+plot(x = city.cluster[[1]]$long,
+     y = city.cluster[[1]]$lat,
+     col=city.cluster[[1]]$cluster_id,
+     main = "d = 0.5°",
+     pch=19, cex=.1, xlab="long", ylab="lat")
+plot(x = city.cluster.m[[1]]$long,
+     y = city.cluster.m[[1]]$lat,
+     col=city.cluster.m[[1]]$cluster_id,
+     main = "d = 56 km",
+     pch=19, cex=.1, xlab="long", ylab="lat")
+dev.off()
+
+
+###################################################
+### code chunk number 18: paper.rnw:238-240
+###################################################
+  coordinates(city.cluster[[1]]) <- ~long+lat
+  proj4string(city.cluster[[1]]) <- CRS("+init=epsg:4326")
+
+
+###################################################
+### code chunk number 19: paper.rnw:252-281 (eval = FALSE)
 ###################################################
 ## library(osc)
 ## data("population")

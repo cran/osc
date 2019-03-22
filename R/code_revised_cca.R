@@ -54,6 +54,9 @@ ccaRm <- function(data="", d=500, res.x=NULL, res.y=NULL, cell.class, compare)
     data <- coordinate.list(data, cell.class, compare)
   }
   
+  print(paste("use as X-coordinates column '",colnames(data)[1],"'"))
+  print(paste("use as Y-coordinates column '",colnames(data)[2],"'"))
+  
   # preprocessing
   n1 <- length(data[,2]);
   data <- ccaR.order(data);
@@ -66,7 +69,14 @@ ccaRm <- function(data="", d=500, res.x=NULL, res.y=NULL, cell.class, compare)
   max_abs <- max(abs(data[,2]));
   min_dist <- acos(sin(max_abs)*sin(max_abs)+cos(max_abs)*cos(max_abs)*cos(res.y*pi/180))*6371000;
   min_dist_h <- acos(sin(0)*sin(res.x*pi/180)+cos(0)*cos(res.x*pi/180)*cos(0))*6371000;
- 
+  
+  # separate additional data for later
+  add.data <- NULL
+  if(ncol(data)>2){
+    add.data <- data[,3:ncol(data)]
+    data <- data[,1:2]
+  }
+  
   # create place holder for cluster id
   data <- cbind(data, rep(0,length(data[,1])))
   data <- as.matrix(data)
@@ -90,6 +100,8 @@ ccaRm <- function(data="", d=500, res.x=NULL, res.y=NULL, cell.class, compare)
   mat1[,2] <- mat1[,2]*180/pi;
   mat1 <- as.data.frame(mat1)
   colnames(mat1) <- c("long","lat","cluster_id")
+  # re-add additional data
+  if(!is.null(add.data)){mat1 <- cbind(mat1, add.data)}
   return(list(cluster=mat1,size=m1$mm));
 }
 
@@ -102,11 +114,21 @@ ccaRd <- function(data="", d=500, cell.class, compare)
      data <- coordinate.list(data, cell.class, compare)
   }
   
+  print(paste("use as X-coordinates column '",colnames(data)[1],"'"))
+  print(paste("use as Y-coordinates column '",colnames(data)[2],"'"))
+  
   # preprocessing
   n1 <- length(data[,2]);
   #data <- ccaR.order(data);
   data <- data[order(data[,1]),];
   print("Sorting... Done");
+  
+  # separate additional data
+  add.data <- NULL
+  if(ncol(data)>2){
+    add.data <- data[,3:ncol(data)]
+    data <- data[,1:2]
+  }
   
   # create place holder for cluster id
   data <- cbind(data, rep(0,length(data[,1])))
@@ -124,6 +146,8 @@ ccaRd <- function(data="", d=500, cell.class, compare)
   
   mat1 <- as.data.frame(mat1)
   colnames(mat1) <- c("long","lat","cluster_id")
+  # re-add additional data
+  if(!is.null(add.data)){mat1 <- cbind(mat1, add.data)}
   return(list(cluster=mat1,size=m1$mm));
 }
 
@@ -168,7 +192,7 @@ assign.data <- function(cluster, points, dist=1000){
 # buffer
 #########################################################
 
-osc.buffer <- function(input, width)
+osc.buffer <- function(input, width=max(dim(input)), return.width=F, complete=F)
 {	
   if(class(input)=="RasterLayer"){
   m <- matrix(input[], nrow=input@nrows, byrow=TRUE)
@@ -176,7 +200,35 @@ osc.buffer <- function(input, width)
     m <- input
     returnraster <- F
   }
-	m1 <- .C("ccaBuffED", m=as.integer(m), nr=as.integer(dim(m)[1]), nc=as.integer(dim(m)[2]), sz=as.integer(width))
+	if(return.width){
+#	  print(sum(m==0))
+	  if(complete){
+	    # m1 <- .C("ccaBuffEDszS",
+	    #          m=as.integer(m),
+	    #          nr=as.integer(dim(m)[1]),
+	    #          nc=as.integer(dim(m)[2]),
+	    #          sz=as.integer(width),
+	    #          nz=as.integer(sum(m==0))) 
+	    m1 <- .C("ccaBuffEDszNN",
+	             m=as.integer(m),
+	             nr=as.integer(dim(m)[1]),
+	             nc=as.integer(dim(m)[2]),
+	             sz=as.integer(width)) 
+	  }else{
+	    m1 <- .C("ccaBuffEDszN",
+	             m=as.integer(m),
+	             nr=as.integer(dim(m)[1]),
+	             nc=as.integer(dim(m)[2]),
+	             sz=as.integer(width),
+	             nz=as.integer(sum(m==0))) 
+	  }
+	}else{
+	  m1 <- .C("ccaBuffED",
+	           m=as.integer(m),
+	           nr=as.integer(dim(m)[1]),
+	           nc=as.integer(dim(m)[2]),
+	           sz=as.integer(width))
+	}
 	m1 <- m1$m
 #	m1[which(m1<0)] <- -1
 	m1 <- matrix(m1, nrow=dim(m)[1])
