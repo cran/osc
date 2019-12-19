@@ -1,5 +1,5 @@
 cca <- function(data, s=1, mode=3, count.cells=FALSE, count.max=ncol(data)*3, res.x=NULL, res.y=NULL, cell.class=1, unit="", compare=""){
-	if(class(data) %in% c("data.frame", "RasterLayer")){
+	if(is(data, "RasterLayer") | is(data, "data.frame")){
     if(unit=="m"){
       ccaRm(data=data, d=s,res.x=res.x, res.y=res.y, cell.class=cell.class, compare)
     } else {
@@ -13,7 +13,7 @@ cca <- function(data, s=1, mode=3, count.cells=FALSE, count.max=ncol(data)*3, re
 ccaM <- function(data, s=1, mode=3, count.cells=FALSE, count.max=ncol(data)*3){
 	#do checks
 	stopifnot(is.numeric(data))
-	stopifnot(is.matrix(data))
+	stopifnot(is(data, "matrix"))
 	stopifnot(is.numeric(s))
 	stopifnot(mode==1 | mode==2 | mode==3)
 	the.data <- as.integer(t(data))
